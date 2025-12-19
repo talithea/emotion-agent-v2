@@ -1,47 +1,65 @@
+"""
+Main entry point for Leila chatbot.
+Runs the interactive conversation loop.
+"""
+
 import os
 from dotenv import load_dotenv
 
 from src.agent.agent import Agent
-from src.emotion.emotion import detect_emotion  
-from src.utils.config import Config  lets 
-from src.utils.logging import logger
+from src.utils.config import Config
 
-# Load environment variables
-load_dotenv()
 
 def main():
+    """Run the main chatbot loop."""
+    # Load environment variables
+    load_dotenv()
+
     # 1. Load Configuration
-    config = Config() 
+    try:
+        config = Config()
+    except ValueError as e:
+        print(f"❌ Configuration Error: {e}")
+        return
 
-    # 2. Initialize Logging
-    logger.info("leila is coming.")
+    print(f"✓ Configuration loaded: {config}")
 
-    # 3. Initialize the Agent
-    agent = Agent(config=config)
+    # 2. Initialize the Agent
+    try:
+        agent = Agent(config=config)
+        print("✓ Agent initialized")
+    except Exception as e:
+        print(f"❌ Failed to initialize agent: {e}")
+        return
 
-    # 4. Main Interaction Loop
-    print("Leila: Hello! How can I help you today?")
+    # 3. Main Interaction Loop
+    print("\n🤖 Leila: Hello! I'm Leila. How can I help you today?")
+    print("(Type 'exit' or 'quit' to end the conversation)\n")
+
     while True:
         try:
             user_input = input("You: ").strip()
 
             if user_input.lower() in ("exit", "quit"):
-                print(" Leila: Goodbye! Remember, you are stronger than your fears.")
+                print("\n🤖 Leila: Goodbye! Remember, you are stronger than your fears. 💪")
                 break
 
-            # --- 5. Emotion Detection ---
-            emotion, confidence = detect_emotion(user_input)
-            logger.debug(f"Detected emotion: {emotion} (confidence: {confidence:.2f})")
+            if not user_input:
+                continue
 
-            # --- 6. Agent Processing ---
-            response = agent.process_input(user_input, emotion, confidence)
+            # --- Process Input ---
+            response = agent.process_input(user_input)
 
-            # --- 7. Output Response ---
-            print(f"🤖 FearlessBot: {response}")
+            # --- Output Response ---
+            print(f"🤖 Leila: {response}\n")
 
+        except KeyboardInterrupt:
+            print("\n\n👋 Conversation interrupted. Take care!")
+            break
         except Exception as e:
-            logger.error(f"An error occurred: {e}")
-            print("🤖 FearlessBot: I'm sorry, I encountered an error. Please try again.")
+            print(f"❌ Error: {e}")
+            print("Please try again.\n")
+
 
 if __name__ == "__main__":
     main()
